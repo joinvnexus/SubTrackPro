@@ -4,6 +4,7 @@ node_modules
 # Build outputs
 dist
 build
+.next
 
 # OS files
 .DS_Store
@@ -52,3 +53,10 @@ temp
 # Misc
 *.tar.gz
 server/public
+
+# Next.js
+next-env.d.ts
+next.config.js
+
+# TODO
+TODO.md
