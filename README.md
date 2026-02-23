@@ -1,4 +1,4 @@
-# Subscription Master
+# SubTrackPro
 
 A full-production ready SaaS application for tracking your subscriptions. Built with modern technologies including React, Express, PostgreSQL, and Drizzle ORM.
 
@@ -36,7 +36,7 @@ For detailed setup instructions, please read [SETUP.md](./SETUP.md)
 bash
 # Clone the repository
 git clone <repository-url>
-cd subscription-master
+cd SubTrackPro
 
 # Install dependencies
 npm install

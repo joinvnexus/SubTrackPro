@@ -1,6 +1,6 @@
 # Setup Guide
 
-This guide provides detailed instructions to set up and run the Subscription Master application locally.
+This guide provides detailed instructions to set up and run the SubTrackPro application locally.
 
 ## Table of Contents
 
@@ -36,7 +36,7 @@ bash
 git clone <repository-url>
 
 # Navigate to the project directory
-cd subscription-master
+cd SubTrackPro
 ```
 
 ---
@@ -76,7 +76,7 @@ Edit the `.env` file and add your configuration:
 env
 # Required - Database connection string
 # Format: postgresql://username:password@host:port/database
-DATABASE_URL=postgresql://postgres:password@localhost:5432/subscription_master
+DATABASE_URL=postgresql://postgres:password@localhost:5432/subtrackpro
 
 # Required - Session secret for authentication
 # Use a long random string in production
@@ -93,12 +93,12 @@ NODE_ENV=development
 
 **Local PostgreSQL:**
 ```
-DATABASE_URL=postgresql://postgres:password@localhost:5432/subscription_master
+DATABASE_URL=postgresql://postgres:password@localhost:5432/subtrackpro
 ```
 
 **Neon (Cloud PostgreSQL):**
 ```
-DATABASE_URL=postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/subscription_master?sslmode=require
+DATABASE_URL=postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/subtrackpro?sslmode=require
 ```
 
 **Supabase (Cloud PostgreSQL):**
