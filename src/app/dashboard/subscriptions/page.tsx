@@ -1,0 +1,189 @@
+"use client";
+
+import { useState } from "react";
+import { format } from "date-fns";
+import { Plus, Search, Edit2, Trash2, Loader2 } from "lucide-react";
+import { useSubscriptions, useDeleteSubscription } from "@/hooks/use-subscriptions";
+import { formatCurrency } from "@/lib/utils";
+import { SubscriptionModal } from "@/components/subscription-modal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { Subscription } from "@/lib/db/schema";
+
+export default function SubscriptionsPage() {
+  const { data: subscriptions, isLoading } = useSubscriptions();
+  const deleteSub = useDeleteSubscription();
+  
+  const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingSub, setEditingSub] = useState<Subscription | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const filteredSubs = subscriptions?.filter(sub => 
+    sub.name.toLowerCase().includes(search.toLowerCase()) || 
+    sub.category.toLowerCase().includes(search.toLowerCase())
+  ) || [];
+
+  const handleEdit = (sub: Subscription) => {
+    setEditingSub(sub);
+    setModalOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingSub(null);
+    setModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deletingId) {
+      await deleteSub.mutateAsync(deletingId);
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-display font-bold">Subscriptions</h1>
+          <p className="text-muted-foreground mt-1">Manage and track your active services.</p>
+        </div>
+        <Button 
+          onClick={handleAddNew}
+          className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Add New
+        </Button>
+      </div>
+
+      <Card className="border-border/50">
+        <CardContent className="p-0">
+          {/* Search */}
+          <div className="p-4 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search subscriptions..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="w-[200px]">Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Billing</TableHead>
+                    <TableHead>Next Renewal</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredSubs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                        {search ? "No subscriptions found matching your search." : "No subscriptions yet. Click 'Add New' to get started."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredSubs.map((sub) => (
+                      <TableRow key={sub.id} className="group border-border">
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-sm font-bold">
+                              {sub.name.charAt(0).toUpperCase()}
+                            </div>
+                            {sub.name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm capitalize">{sub.category}</TableCell>
+                        <TableCell className="text-sm">
+                          {formatCurrency(sub.price)}
+                          <span className="text-xs text-muted-foreground ml-1">
+                            /{sub.billingCycle === 'monthly' ? 'mo' : 'yr'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm capitalize">{sub.billingCycle}</TableCell>
+                        <TableCell className="text-sm">
+                          {format(new Date(sub.renewalDate), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => handleEdit(sub)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => setDeletingId(sub.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <SubscriptionModal 
+        open={modalOpen} 
+        onOpenChange={setModalOpen} 
+        subscription={editingSub} 
+      />
+
+      <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
+        <AlertDialogContent className="border-border/50 shadow-2xl bg-background">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this subscription from your dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              {deleteSub.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
