@@ -1,0 +1,111 @@
+🧠 PROJECT PROMPT
+Build a full production-ready SaaS Subscription Analytics Dashboard using:
+Next.js (App Router)
+TypeScript
+Tailwind CSS
+Supabase (Auth + PostgreSQL + RLS)
+Stripe (Subscription billing)
+The app name is: “SubTrack Pro”
+🎯 Product Goal
+Create a SaaS web app where users can:
+Track all their digital subscriptions
+View monthly and yearly cost analytics
+Get renewal reminders
+Upgrade to a Pro plan
+Export financial reports (Pro only)
+🗄️ DATABASE REQUIREMENTS
+Create SQL schema for:
+profiles
+subscriptions
+user_plans
+Requirements:
+UUID primary keys
+Foreign key relations
+Proper indexing
+Row Level Security enabled
+Policies so users can only access their own data
+Include full SQL setup script.
+🔐 AUTHENTICATION REQUIREMENTS
+Use Supabase Auth.
+Implement:
+Email/password signup
+Login
+Logout
+Session handling
+Protected routes middleware
+Profile auto-create trigger
+🎨 FRONTEND REQUIREMENTS
+Use App Router structure:
+Copy code
+
+app/
+  (auth)/
+  dashboard/
+  subscriptions/
+  settings/
+Design requirements:
+Dashboard page must include:
+KPI Cards:
+Total Monthly Cost
+Active Subscriptions
+Upcoming Renewals
+Annual Projection
+Chart section (monthly spending trend)
+Subscriptions table with:
+Edit
+Delete
+Filter
+Search
+Add subscription modal form:
+Name
+Price
+Billing cycle
+Category
+Renewal date
+Use clean SaaS UI with responsive layout and dark mode support.
+💳 STRIPE INTEGRATION
+Implement:
+Free Plan
+Pro Plan ($9/month)
+Requirements:
+Create checkout session
+Webhook endpoint
+Update user_plans table
+Restrict features for free users (max 5 subscriptions)
+Add billing portal redirect option.
+📊 ANALYTICS LOGIC
+Calculate:
+MRR (Monthly Recurring Revenue)
+ARR (Annual Recurring Revenue)
+Churn rate
+Renewal upcoming count
+Use efficient server-side queries.
+⚡ PERFORMANCE & UX
+Include:
+Loading states
+Skeleton UI
+Optimistic updates
+Proper error handling
+Form validation (Zod)
+API rate limiting
+🚀 DEPLOYMENT
+Prepare:
+Environment variables setup
+Production build configuration
+Deployment guide for Vercel
+Stripe webhook production configuration
+🧩 EXTRA FEATURES (Optional but Preferred)
+CSV export
+Email renewal reminders
+Category-based analytics
+Team collaboration (future-ready structure)
+📦 OUTPUT FORMAT
+Generate:
+Full project folder structure
+Complete SQL schema
+Supabase client setup
+Auth implementation
+CRUD logic
+Stripe integration
+Deployment guide
+All code must be production-ready, type-safe, and modular.
