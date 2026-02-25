@@ -88,6 +88,7 @@ export default function AuthPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className="w-full max-w-md"
+           
         >
           {/* Mobile Header */}
           <div className="flex lg:hidden items-center justify-center gap-2 text-primary font-display font-bold text-2xl mb-8">

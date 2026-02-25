@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/admin";
+import { createAdminClient } from "@/lib/supabase/admin";
 import Stripe from "stripe";
 
 // Initialize Stripe (will use env variables in production)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
-  apiVersion: "2024-12-18.acacia",
+  apiVersion: "2025-02-24.acacia",
 });
 
 export async function POST(request: Request) {
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createAdminClient();
 
     // Handle the event
     switch (event.type) {
@@ -46,13 +46,20 @@ export async function POST(request: Request) {
         const userId = session.metadata?.userId;
         
         if (userId) {
+          // Get price_id from line_items or subscription
+          let stripePriceId: string | undefined;
+          if (session.subscription) {
+            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+            stripePriceId = subscription.items.data[0]?.price.id;
+          }
+          
           // Update user plan to pro
           await supabase.from("user_plans").upsert({
             userId: userId,
             plan: "pro",
             stripeCustomerId: session.customer as string,
             stripeSubscriptionId: session.subscription as string,
-            stripePriceId: session.price_id,
+            stripePriceId: stripePriceId,
             isActive: true,
           });
         }

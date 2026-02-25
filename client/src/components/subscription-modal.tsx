@@ -72,7 +72,7 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
       price: parseCurrencyToCents(data.priceStr),
       billingCycle: data.billingCycle,
       category: data.category,
-      renewalDate: data.renewalDate.toISOString(),
+      renewalDate: new Date(data.renewalDate), // Convert string to Date
     };
 
     try {

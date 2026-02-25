@@ -23,7 +23,11 @@
     ],
     "paths": {
       "@/*": [
-        "./src/*"
+        "./src/*",
+        "./client/src/*"
+      ],
+      "@shared/*": [
+        "./shared/*"
       ]
     },
     "target": "ES2017"
@@ -35,6 +39,7 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "client"
   ]
 }

@@ -41,9 +41,8 @@ const plans = [
 ];
 
 export default function SettingsPage() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isPro, isLoading: authLoading } = useAuth();
   const upgradePlan = useUpgradePlan();
-  const isPro = user?.plan === "pro";
 
   return (
     <div className="space-y-8 max-w-4xl">
