@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { Plus, Search, Edit2, Trash2, Loader2 } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Loader2, Download } from "lucide-react";
 import { useSubscriptions, useDeleteSubscription } from "@/hooks/use-subscriptions";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { SubscriptionModal } from "@/components/subscription-modal";
 import { Button } from "@/components/ui/button";
@@ -22,9 +24,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { Subscription } from "@/lib/db/schema";
 
+function escapeCsvValue(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
 export default function SubscriptionsPage() {
   const { data: subscriptions, isLoading } = useSubscriptions();
   const deleteSub = useDeleteSubscription();
+  const { isPro } = useAuth();
+  const { toast } = useToast();
   
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -53,6 +61,65 @@ export default function SubscriptionsPage() {
     }
   };
 
+  const handleExportCsv = () => {
+    if (!isPro) {
+      toast({
+        title: "Pro feature",
+        description: "Upgrade to Pro to export CSV reports.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!filteredSubs.length) {
+      toast({
+        title: "No data to export",
+        description: "Add subscriptions first or clear the current search filter.",
+      });
+      return;
+    }
+
+    const headers = [
+      "Name",
+      "Description",
+      "Category",
+      "BillingCycle",
+      "PriceUSD",
+      "RenewalDate",
+      "CreatedAt",
+    ];
+
+    const rows = filteredSubs.map((sub) =>
+      [
+        escapeCsvValue(sub.name),
+        escapeCsvValue(sub.description ?? ""),
+        escapeCsvValue(sub.category),
+        escapeCsvValue(sub.billingCycle),
+        escapeCsvValue((sub.price / 100).toFixed(2)),
+        escapeCsvValue(format(new Date(sub.renewalDate), "yyyy-MM-dd")),
+        escapeCsvValue(format(new Date(sub.createdAt), "yyyy-MM-dd")),
+      ].join(",")
+    );
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const filenameDate = format(new Date(), "yyyy-MM-dd");
+
+    link.href = url;
+    link.download = `subscriptions-${filenameDate}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export complete",
+      description: `${filteredSubs.length} subscriptions exported.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -60,12 +127,17 @@ export default function SubscriptionsPage() {
           <h1 className="text-3xl font-display font-bold">Subscriptions</h1>
           <p className="text-muted-foreground mt-1">Manage and track your active services.</p>
         </div>
-        <Button 
-          onClick={handleAddNew}
-          className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Add New
-        </Button>
+        <div className="flex w-full sm:w-auto items-center gap-2">
+          <Button variant="outline" onClick={handleExportCsv} className="w-full sm:w-auto">
+            <Download className="mr-2 h-4 w-4" /> Export CSV
+          </Button>
+          <Button 
+            onClick={handleAddNew}
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add New
+          </Button>
+        </div>
       </div>
 
       <Card className="border-border/50">
