@@ -71,7 +71,13 @@ function SubscriptionsTableSkeleton() {
 }
 
 export default function SubscriptionsPage() {
-  const { data: subscriptions, isLoading } = useSubscriptions();
+  const {
+    data: subscriptions,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useSubscriptions();
   const deleteSub = useDeleteSubscription();
   const { isPro } = useAuth();
   const { toast } = useToast();
@@ -199,6 +205,15 @@ export default function SubscriptionsPage() {
 
           {isLoading ? (
             <SubscriptionsTableSkeleton />
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center gap-3 p-10 text-center">
+              <p className="text-sm text-destructive">
+                {(error as Error)?.message || "Failed to load subscriptions."}
+              </p>
+              <Button variant="outline" onClick={() => refetch()}>
+                Try Again
+              </Button>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>

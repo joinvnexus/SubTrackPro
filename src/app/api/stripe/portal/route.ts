@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { consumeRateLimit, getRequestClientIp } from "@/lib/rate-limit";
+import { apiError, apiServerError } from "@/lib/api-error";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
@@ -21,17 +22,15 @@ export async function POST(request: Request) {
     });
 
     if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again shortly." },
-        { status: 429, headers: rateLimit.headers }
+      return apiError(
+        "Too many requests. Please try again shortly.",
+        429,
+        rateLimit.headers
       );
     }
 
     if (!stripe) {
-      return NextResponse.json(
-        { error: "Stripe is not configured. Missing STRIPE_SECRET_KEY." },
-        { status: 500 }
-      );
+      return apiError("Stripe is not configured. Missing STRIPE_SECRET_KEY.", 500);
     }
 
     const supabase = createClient();
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     const { data: userPlan, error: planError } = await supabase
@@ -51,14 +50,11 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (planError) {
-      return NextResponse.json({ error: planError.message }, { status: 500 });
+      return apiError(planError.message, 500);
     }
 
     if (!userPlan?.stripeCustomerId) {
-      return NextResponse.json(
-        { error: "No Stripe customer found for this account" },
-        { status: 400 }
-      );
+      return apiError("No Stripe customer found for this account", 400);
     }
 
     const appUrl =
@@ -73,10 +69,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: portalSession.url });
   } catch (error) {
-    console.error("Portal error:", error);
-    return NextResponse.json(
-      { error: "Failed to create billing portal session" },
-      { status: 500 }
+    return apiServerError(
+      error,
+      "Portal error",
+      "Failed to create billing portal session"
     );
   }
 }

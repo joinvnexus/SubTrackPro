@@ -11,7 +11,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { isAfter, isBefore, addDays } from "date-fns";
 
 export default function DashboardPage() {
-  const { data: subscriptions, isLoading } = useSubscriptions();
+  const {
+    data: subscriptions,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useSubscriptions();
   const { isPro } = useAuth();
 
   const metrics = useMemo(() => {
@@ -111,6 +117,27 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="border-destructive/40">
+        <CardHeader>
+          <CardTitle>Could not load dashboard</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {(error as Error)?.message || "Something went wrong while loading data."}
+          </p>
+          <button
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            onClick={() => refetch()}
+          >
+            Try Again
+          </button>
+        </CardContent>
+      </Card>
     );
   }
 

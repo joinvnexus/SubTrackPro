@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
 import { consumeRateLimit, getRequestClientIp } from "@/lib/rate-limit";
+import { apiError, apiServerError } from "@/lib/api-error";
 
 export const runtime = "nodejs";
 
@@ -111,9 +112,10 @@ export async function POST(request: Request) {
     });
 
     if (!ipRateLimit.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again shortly." },
-        { status: 429, headers: ipRateLimit.headers }
+      return apiError(
+        "Too many requests. Please try again shortly.",
+        429,
+        ipRateLimit.headers
       );
     }
 
@@ -123,14 +125,11 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     if (!user.email) {
-      return NextResponse.json(
-        { error: "No email is associated with this account" },
-        { status: 400 }
-      );
+      return apiError("No email is associated with this account", 400);
     }
 
     const userRateLimit = consumeRateLimit({
@@ -140,12 +139,10 @@ export async function POST(request: Request) {
     });
 
     if (!userRateLimit.allowed) {
-      return NextResponse.json(
-        {
-          error:
-            "Reminder limit reached. Please wait before sending another reminder.",
-        },
-        { status: 429, headers: userRateLimit.headers }
+      return apiError(
+        "Reminder limit reached. Please wait before sending another reminder.",
+        429,
+        userRateLimit.headers
       );
     }
 
@@ -159,7 +156,7 @@ export async function POST(request: Request) {
       .eq("isActive", true);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return apiError(error.message, 500);
     }
 
     const upcoming = getUpcomingRenewals(
@@ -189,10 +186,10 @@ export async function POST(request: Request) {
       count: upcoming.length,
     });
   } catch (error) {
-    console.error("Renewal reminder error:", error);
-    return NextResponse.json(
-      { error: "Failed to send renewal reminder email" },
-      { status: 500 }
+    return apiServerError(
+      error,
+      "Renewal reminder error",
+      "Failed to send renewal reminder email"
     );
   }
 }

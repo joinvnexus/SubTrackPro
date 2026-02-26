@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import Stripe from "stripe";
 import { consumeRateLimit, getRequestClientIp } from "@/lib/rate-limit";
+import { apiError, apiServerError } from "@/lib/api-error";
 
 export const runtime = "nodejs";
 
@@ -28,19 +29,17 @@ export async function POST(request: Request) {
     });
 
     if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: "Too many webhook requests. Please retry later." },
-        { status: 429, headers: rateLimit.headers }
+      return apiError(
+        "Too many webhook requests. Please retry later.",
+        429,
+        rateLimit.headers
       );
     }
 
     if (!stripe || !webhookSecret) {
-      return NextResponse.json(
-        {
-          error:
-            "Stripe webhook is not configured. Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET.",
-        },
-        { status: 500 }
+      return apiError(
+        "Stripe webhook is not configured. Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET.",
+        500
       );
     }
 
@@ -48,10 +47,7 @@ export async function POST(request: Request) {
     const signature = request.headers.get("stripe-signature");
 
     if (!signature) {
-      return NextResponse.json(
-        { error: "Missing stripe signature" },
-        { status: 400 }
-      );
+      return apiError("Missing stripe signature", 400);
     }
 
     let event: Stripe.Event;
@@ -64,10 +60,7 @@ export async function POST(request: Request) {
       );
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 400 }
-      );
+      return apiError("Invalid signature", 400);
     }
 
     const supabase = await createAdminClient();
@@ -186,10 +179,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Webhook error:", error);
-    return NextResponse.json(
-      { error: "Webhook handler failed" },
-      { status: 500 }
-    );
+    return apiServerError(error, "Webhook error", "Webhook handler failed");
   }
 }
