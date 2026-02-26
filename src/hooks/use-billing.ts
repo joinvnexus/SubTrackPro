@@ -5,37 +5,77 @@ import { createClientBrowser } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./use-auth";
 
+async function getErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = (await response.json()) as { error?: string };
+    if (data?.error) return data.error;
+  } catch {
+    // Ignore JSON parse errors and fall back below.
+  }
+  return "Request failed";
+}
+
 export function useUpgradePlan() {
-  const queryClient = useQueryClient();
   const { toast } = useToast();
-  const supabase = createClientBrowser();
   const { user } = useAuth();
 
   return useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Must be logged in");
 
-      // In a real app, this would create a Stripe checkout session
-      // For now, we'll just update the user plan directly
-      const { error } = await supabase.from("user_plans").upsert({
-        userId: user.id,
-        plan: "pro",
-        isActive: true,
-        stripeCurrentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
       });
 
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-plan"] });
-      toast({
-        title: "Upgraded to Pro! 🎉",
-        description: "Thank you for subscribing. You now have unlimited access.",
-      });
+      if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+      }
+
+      const data = (await response.json()) as { url?: string };
+
+      if (!data.url) {
+        throw new Error("Checkout URL was not returned");
+      }
+
+      window.location.assign(data.url);
     },
     onError: (error: Error) => {
       toast({
         title: "Upgrade failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+export function useOpenBillingPortal() {
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Must be logged in");
+
+      const response = await fetch("/api/stripe/portal", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+      }
+
+      const data = (await response.json()) as { url?: string };
+
+      if (!data.url) {
+        throw new Error("Billing portal URL was not returned");
+      }
+
+      window.location.assign(data.url);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Billing portal unavailable",
         description: error.message,
         variant: "destructive",
       });

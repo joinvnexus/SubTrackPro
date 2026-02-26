@@ -2,13 +2,33 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import Stripe from "stripe";
 
-// Initialize Stripe (will use env variables in production)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
-  apiVersion: "2025-02-24.acacia",
-});
+export const runtime = "nodejs";
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, {
+      apiVersion: "2025-02-24.acacia",
+    })
+  : null;
+
+function isPlanActive(status: Stripe.Subscription.Status): boolean {
+  return status === "active" || status === "trialing";
+}
 
 export async function POST(request: Request) {
   try {
+    if (!stripe || !webhookSecret) {
+      return NextResponse.json(
+        {
+          error:
+            "Stripe webhook is not configured. Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET.",
+        },
+        { status: 500 }
+      );
+    }
+
     const body = await request.text();
     const signature = request.headers.get("stripe-signature");
 
@@ -25,7 +45,7 @@ export async function POST(request: Request) {
       event = stripe.webhooks.constructEvent(
         body,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET || "whsec_placeholder"
+        webhookSecret
       );
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
@@ -41,35 +61,46 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        
-        // Get the user ID from metadata
-        const userId = session.metadata?.userId;
-        
+
+        const userId = session.metadata?.userId || session.client_reference_id;
+
         if (userId) {
-          // Get price_id from line_items or subscription
-          let stripePriceId: string | undefined;
-          if (session.subscription) {
-            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+          const subscriptionId =
+            typeof session.subscription === "string"
+              ? session.subscription
+              : session.subscription?.id;
+
+          let stripePriceId: string | undefined = undefined;
+          let stripeCurrentPeriodEnd: string | undefined = undefined;
+          let activeStatus = true;
+
+          if (subscriptionId) {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
             stripePriceId = subscription.items.data[0]?.price.id;
+            stripeCurrentPeriodEnd = new Date(
+              subscription.current_period_end * 1000
+            ).toISOString();
+            activeStatus = isPlanActive(subscription.status);
           }
-          
-          // Update user plan to pro
+
           await supabase.from("user_plans").upsert({
-            userId: userId,
+            userId,
             plan: "pro",
             stripeCustomerId: session.customer as string,
-            stripeSubscriptionId: session.subscription as string,
-            stripePriceId: stripePriceId,
-            isActive: true,
+            stripeSubscriptionId: subscriptionId,
+            stripePriceId,
+            stripeCurrentPeriodEnd,
+            isActive: activeStatus,
           });
+        } else {
+          console.warn("checkout.session.completed received without userId metadata");
         }
         break;
       }
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        
-        // Find user by stripe customer ID
+
         const { data: userPlan } = await supabase
           .from("user_plans")
           .select("userId")
@@ -79,16 +110,44 @@ export async function POST(request: Request) {
         if (userPlan) {
           await supabase.from("user_plans").update({
             stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
-            isActive: subscription.status === "active",
+            stripePriceId: subscription.items.data[0]?.price.id,
+            stripeSubscriptionId: subscription.id,
+            isActive: isPlanActive(subscription.status),
+            plan: isPlanActive(subscription.status) ? "pro" : "free",
           }).eq("userId", userPlan.userId);
+        }
+        break;
+      }
+
+      case "customer.subscription.created": {
+        const subscription = event.data.object as Stripe.Subscription;
+
+        const { data: userPlan } = await supabase
+          .from("user_plans")
+          .select("userId")
+          .eq("stripeCustomerId", subscription.customer)
+          .maybeSingle();
+
+        if (userPlan) {
+          await supabase
+            .from("user_plans")
+            .update({
+              plan: "pro",
+              stripeSubscriptionId: subscription.id,
+              stripePriceId: subscription.items.data[0]?.price.id,
+              stripeCurrentPeriodEnd: new Date(
+                subscription.current_period_end * 1000
+              ).toISOString(),
+              isActive: isPlanActive(subscription.status),
+            })
+            .eq("userId", userPlan.userId);
         }
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        
-        // Find user by stripe customer ID and deactivate
+
         const { data: userPlan } = await supabase
           .from("user_plans")
           .select("userId")
@@ -99,6 +158,8 @@ export async function POST(request: Request) {
           await supabase.from("user_plans").update({
             isActive: false,
             plan: "free",
+            stripeSubscriptionId: null,
+            stripePriceId: null,
           }).eq("userId", userPlan.userId);
         }
         break;

@@ -8,6 +8,7 @@ This guide provides detailed instructions to set up and run the SubTrackPro appl
 - [Clone the Repository](#clone-the-repository)
 - [Install Dependencies](#install-dependencies)
 - [Environment Setup](#environment-setup)
+- [Stripe Test Mode Setup](#stripe-test-mode-setup)
 - [Database Setup](#database-setup)
 - [Run the Application](#run-the-application)
 - [Troubleshooting](#troubleshooting)
@@ -105,6 +106,42 @@ DATABASE_URL=postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/subtr
 ```
 DATABASE_URL=postgresql://postgres:password@db.xxx.supabase.co:5432/postgres
 ```
+
+---
+
+## Stripe Test Mode Setup
+
+Use this section to validate the `In Progress` Stripe flow end-to-end in test mode.
+
+### Required Variables
+
+Add these to `.env` (see `.env.example`):
+
+```env
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRO_PRICE_ID=price_...
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+### Local Webhook Forwarding (Stripe CLI)
+
+Run this in a separate terminal after starting the app:
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+Copy the generated webhook signing secret (`whsec_...`) into `STRIPE_WEBHOOK_SECRET`.
+
+### Quick Validation Checklist
+
+1. Log in and open `/dashboard/settings`.
+2. Click `Upgrade to Pro` and complete checkout with a Stripe test card (for example: `4242 4242 4242 4242`).
+3. Confirm webhook events are received in Stripe CLI output.
+4. Verify `user_plans` is updated (`plan=pro`, active status, Stripe IDs set).
+5. Click `Manage Billing` and confirm Stripe Billing Portal opens.
 
 ---
 

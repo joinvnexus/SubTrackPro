@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { useUpgradePlan } from "@/hooks/use-billing";
+import { useOpenBillingPortal, useUpgradePlan } from "@/hooks/use-billing";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, Crown, Loader2, Download } from "lucide-react";
@@ -41,8 +43,34 @@ const plans = [
 ];
 
 export default function SettingsPage() {
-  const { user, isPro, isLoading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const { user, isPro } = useAuth();
   const upgradePlan = useUpgradePlan();
+  const openBillingPortal = useOpenBillingPortal();
+  const handledCheckoutStatusRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const checkoutStatus = searchParams.get("checkout");
+
+    if (!checkoutStatus || handledCheckoutStatusRef.current === checkoutStatus) {
+      return;
+    }
+
+    if (checkoutStatus === "success") {
+      toast({
+        title: "Checkout complete",
+        description: "Stripe checkout completed successfully.",
+      });
+    } else if (checkoutStatus === "cancelled") {
+      toast({
+        title: "Checkout cancelled",
+        description: "No changes were made to your plan.",
+      });
+    }
+
+    handledCheckoutStatusRef.current = checkoutStatus;
+  }, [searchParams, toast]);
 
   return (
     <div className="space-y-8 max-w-4xl">
@@ -102,7 +130,15 @@ export default function SettingsPage() {
                     <p className="text-sm text-muted-foreground">You have unlimited access to all features</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openBillingPortal.mutate()}
+                  disabled={openBillingPortal.isPending}
+                >
+                  {openBillingPortal.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
                   Manage Billing
                 </Button>
               </div>
@@ -133,9 +169,9 @@ export default function SettingsPage() {
       {!isPro && (
         <div className="grid gap-6 md:grid-cols-2">
           {plans.map((plan) => (
-            <Card 
-              key={plan.name} 
-              className={`relative border-border/50 ${plan.popular ? 'border-primary/50 bg-primary/5' : ''}`}
+            <Card
+              key={plan.name}
+              className={`relative border-border/50 ${plan.popular ? "border-primary/50 bg-primary/5" : ""}`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
@@ -162,8 +198,8 @@ export default function SettingsPage() {
                     </li>
                   ))}
                 </ul>
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   variant={plan.popular ? "default" : "outline"}
                   onClick={() => !isPro && upgradePlan.mutate()}
                   disabled={plan.name === "Free" || isPro}

@@ -1,64 +1,102 @@
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST() {
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripePriceId = process.env.STRIPE_PRO_PRICE_ID || process.env.STRIPE_PRICE_ID;
+
+const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, {
+      apiVersion: "2025-02-24.acacia",
+    })
+  : null;
+
+export async function POST(request: Request) {
   try {
-    const supabase = createClient();
-    
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    if (!stripe || !stripePriceId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        {
+          error:
+            "Stripe is not configured. Missing STRIPE_SECRET_KEY or STRIPE_PRO_PRICE_ID.",
+        },
+        { status: 500 }
       );
     }
 
-    // In production, you would create a Stripe checkout session here
-    // For demo purposes, we'll simulate upgrading the user
-    
-    // Check if user already has a pro plan
-    const { data: existingPlan } = await supabase
-      .from("user_plans")
-      .select("*")
-      .eq("userId", user.id)
-      .eq("plan", "pro")
-      .eq("isActive", true)
-      .single();
+    const supabase = createClient();
 
-    if (existingPlan) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: userPlan, error: planError } = await supabase
+      .from("user_plans")
+      .select("plan, isActive, stripeCustomerId")
+      .eq("userId", user.id)
+      .maybeSingle();
+
+    if (planError) {
+      return NextResponse.json({ error: planError.message }, { status: 500 });
+    }
+
+    if (userPlan?.plan === "pro" && userPlan?.isActive) {
       return NextResponse.json(
         { error: "Already on Pro plan" },
         { status: 400 }
       );
     }
 
-    // Update user to pro plan (simulating successful payment)
-    const { error: updateError } = await supabase
-      .from("user_plans")
-      .upsert({
-        userId: user.id,
-        plan: "pro",
-        isActive: true,
-        stripeCurrentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    let stripeCustomerId = userPlan?.stripeCustomerId ?? null;
+
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: user.email ?? undefined,
+        metadata: { userId: user.id },
       });
 
-    if (updateError) {
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 }
-      );
+      stripeCustomerId = customer.id;
+
+      const { error: upsertError } = await supabase.from("user_plans").upsert({
+        userId: user.id,
+        plan: userPlan?.plan ?? "free",
+        isActive: userPlan?.isActive ?? true,
+        stripeCustomerId,
+      });
+
+      if (upsertError) {
+        return NextResponse.json({ error: upsertError.message }, { status: 500 });
+      }
     }
 
-    return NextResponse.json({ 
-      success: true,
-      message: "Successfully upgraded to Pro plan"
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      request.headers.get("origin") ||
+      "http://localhost:3000";
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: stripeCustomerId,
+      client_reference_id: user.id,
+      line_items: [{ price: stripePriceId, quantity: 1 }],
+      success_url: `${appUrl}/dashboard/settings?checkout=success`,
+      cancel_url: `${appUrl}/dashboard/settings?checkout=cancelled`,
+      metadata: { userId: user.id },
+      allow_promotion_codes: true,
     });
+
+    if (!session.url) {
+      throw new Error("Stripe checkout session did not include a URL.");
+    }
+
+    return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Checkout error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to create checkout session" },
       { status: 500 }
     );
   }
