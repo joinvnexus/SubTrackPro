@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { format } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
+import { consumeRateLimit, getRequestClientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -102,6 +103,20 @@ async function sendReminderEmail(to: string, subject: string, html: string, text
 
 export async function POST(request: Request) {
   try {
+    const clientIp = getRequestClientIp(request);
+    const ipRateLimit = consumeRateLimit({
+      key: `renewal-reminder-ip:${clientIp}`,
+      maxRequests: 20,
+      windowMs: 60_000,
+    });
+
+    if (!ipRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again shortly." },
+        { status: 429, headers: ipRateLimit.headers }
+      );
+    }
+
     const supabase = createClient();
     const {
       data: { user },
@@ -115,6 +130,22 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "No email is associated with this account" },
         { status: 400 }
+      );
+    }
+
+    const userRateLimit = consumeRateLimit({
+      key: `renewal-reminder-user:${user.id}`,
+      maxRequests: 3,
+      windowMs: 10 * 60_000,
+    });
+
+    if (!userRateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "Reminder limit reached. Please wait before sending another reminder.",
+        },
+        { status: 429, headers: userRateLimit.headers }
       );
     }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
+import { consumeRateLimit, getRequestClientIp } from "@/lib/rate-limit";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripePriceId = process.env.STRIPE_PRO_PRICE_ID || process.env.STRIPE_PRICE_ID;
@@ -13,6 +14,20 @@ const stripe = stripeSecretKey
 
 export async function POST(request: Request) {
   try {
+    const clientIp = getRequestClientIp(request);
+    const rateLimit = consumeRateLimit({
+      key: `stripe-checkout:${clientIp}`,
+      maxRequests: 10,
+      windowMs: 60_000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again shortly." },
+        { status: 429, headers: rateLimit.headers }
+      );
+    }
+
     if (!stripe || !stripePriceId) {
       return NextResponse.json(
         {

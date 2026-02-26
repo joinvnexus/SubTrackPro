@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import Stripe from "stripe";
+import { consumeRateLimit, getRequestClientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,20 @@ function isPlanActive(status: Stripe.Subscription.Status): boolean {
 
 export async function POST(request: Request) {
   try {
+    const clientIp = getRequestClientIp(request);
+    const rateLimit = consumeRateLimit({
+      key: `stripe-webhook:${clientIp}`,
+      maxRequests: 180,
+      windowMs: 60_000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many webhook requests. Please retry later." },
+        { status: 429, headers: rateLimit.headers }
+      );
+    }
+
     if (!stripe || !webhookSecret) {
       return NextResponse.json(
         {
