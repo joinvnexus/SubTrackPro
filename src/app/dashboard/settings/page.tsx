@@ -4,10 +4,11 @@ import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useOpenBillingPortal, useUpgradePlan } from "@/hooks/use-billing";
+import { useSendRenewalReminder } from "@/hooks/use-reminders";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Loader2, Download } from "lucide-react";
+import { Check, Crown, Loader2, Download, Mail } from "lucide-react";
 
 const plans = [
   {
@@ -48,6 +49,7 @@ export default function SettingsPage() {
   const { user, isPro } = useAuth();
   const upgradePlan = useUpgradePlan();
   const openBillingPortal = useOpenBillingPortal();
+  const sendRenewalReminder = useSendRenewalReminder();
   const handledCheckoutStatusRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -130,17 +132,32 @@ export default function SettingsPage() {
                     <p className="text-sm text-muted-foreground">You have unlimited access to all features</p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openBillingPortal.mutate()}
-                  disabled={openBillingPortal.isPending}
-                >
-                  {openBillingPortal.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : null}
-                  Manage Billing
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => sendRenewalReminder.mutate(7)}
+                    disabled={sendRenewalReminder.isPending}
+                  >
+                    {sendRenewalReminder.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Mail className="mr-2 h-4 w-4" />
+                    )}
+                    Send Reminder
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openBillingPortal.mutate()}
+                    disabled={openBillingPortal.isPending}
+                  >
+                    {openBillingPortal.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
+                    Manage Billing
+                  </Button>
+                </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Download className="h-4 w-4" />

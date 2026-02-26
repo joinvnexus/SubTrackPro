@@ -9,6 +9,7 @@ This guide provides detailed instructions to set up and run the SubTrackPro appl
 - [Install Dependencies](#install-dependencies)
 - [Environment Setup](#environment-setup)
 - [Stripe Test Mode Setup](#stripe-test-mode-setup)
+- [Email Reminder Setup](#email-reminder-setup)
 - [Database Setup](#database-setup)
 - [Run the Application](#run-the-application)
 - [Troubleshooting](#troubleshooting)
@@ -142,6 +143,29 @@ Copy the generated webhook signing secret (`whsec_...`) into `STRIPE_WEBHOOK_SEC
 3. Confirm webhook events are received in Stripe CLI output.
 4. Verify `user_plans` is updated (`plan=pro`, active status, Stripe IDs set).
 5. Click `Manage Billing` and confirm Stripe Billing Portal opens.
+
+---
+
+## Email Reminder Setup
+
+Use this section to enable renewal reminder emails.
+
+### Required Variables
+
+Add these to `.env` (see `.env.example`):
+
+```env
+RESEND_API_KEY=re_...
+REMINDER_FROM_EMAIL=SubTrack Pro <onboarding@resend.dev>
+```
+
+### Trigger a Test Reminder
+
+1. Make sure your account is on Pro plan.
+2. Add at least one subscription renewing within 7 days.
+3. Open `/dashboard/settings`.
+4. Click `Send Reminder`.
+5. Confirm the reminder email reaches your account inbox.
 
 ---
 
