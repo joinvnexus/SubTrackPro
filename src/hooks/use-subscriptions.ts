@@ -6,6 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./use-auth";
 import type { Subscription, SubscriptionFormData } from "@/lib/db/schema";
 
+type SubscriptionsContext = {
+  previousSubscriptions: Subscription[];
+};
+
 export function useSubscriptions() {
   const supabase = createClientBrowser();
 
@@ -70,7 +74,7 @@ export function useCreateSubscription() {
         userId: user.id,
         name: data.name,
         description: data.description,
-        price: Math.round(data.price * 100), // Convert to cents
+        price: Math.round(data.price),
         billingCycle: data.billingCycle,
         category: data.category,
         renewalDate: data.renewalDate.toISOString(),
@@ -78,14 +82,50 @@ export function useCreateSubscription() {
 
       if (error) throw error;
     },
+    onMutate: async (data): Promise<SubscriptionsContext> => {
+      await queryClient.cancelQueries({ queryKey: ["subscriptions"] });
+      const previousSubscriptions =
+        queryClient.getQueryData<Subscription[]>(["subscriptions"]) || [];
+
+      if (!user) {
+        return { previousSubscriptions };
+      }
+
+      const now = new Date();
+      const optimisticSubscription = {
+        id: `temp-${Date.now()}`,
+        userId: user.id,
+        name: data.name,
+        description: data.description ?? null,
+        price: Math.round(data.price),
+        billingCycle: data.billingCycle,
+        category: data.category,
+        renewalDate: data.renewalDate,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      } as unknown as Subscription;
+
+      queryClient.setQueryData<Subscription[]>(["subscriptions"], (old = []) => [
+        optimisticSubscription,
+        ...old,
+      ]);
+
+      return { previousSubscriptions };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
       toast({
         title: "Success",
         description: "Subscription added successfully.",
       });
     },
-    onError: (error: Error) => {
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousSubscriptions) {
+        queryClient.setQueryData(["subscriptions"], context.previousSubscriptions);
+      }
       if (error.message === "PLAN_LIMIT_REACHED") {
         toast({
           title: "Limit Reached",
@@ -113,7 +153,7 @@ export function useUpdateSubscription() {
       const updates: Record<string, unknown> = {
         name: data.name,
         description: data.description,
-        price: Math.round((data.price || 0) * 100),
+        price: Math.round(data.price || 0),
         billingCycle: data.billingCycle,
         category: data.category,
         renewalDate: data.renewalDate?.toISOString(),
@@ -132,14 +172,43 @@ export function useUpdateSubscription() {
 
       if (error) throw error;
     },
+    onMutate: async ({ id, ...data }): Promise<SubscriptionsContext> => {
+      await queryClient.cancelQueries({ queryKey: ["subscriptions"] });
+      const previousSubscriptions =
+        queryClient.getQueryData<Subscription[]>(["subscriptions"]) || [];
+
+      queryClient.setQueryData<Subscription[]>(["subscriptions"], (old = []) =>
+        old.map((sub) =>
+          sub.id === id
+            ? ({
+                ...sub,
+                name: data.name,
+                description: data.description ?? null,
+                price: Math.round(data.price || 0),
+                billingCycle: data.billingCycle,
+                category: data.category,
+                renewalDate: data.renewalDate || sub.renewalDate,
+                updatedAt: new Date(),
+              } as Subscription)
+            : sub
+        )
+      );
+
+      return { previousSubscriptions };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
       toast({
         title: "Success",
         description: "Subscription updated successfully.",
       });
     },
-    onError: (error: Error) => {
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousSubscriptions) {
+        queryClient.setQueryData(["subscriptions"], context.previousSubscriptions);
+      }
       toast({
         title: "Error",
         description: error.message,
@@ -164,14 +233,31 @@ export function useDeleteSubscription() {
 
       if (error) throw error;
     },
+    onMutate: async (id: string): Promise<SubscriptionsContext> => {
+      await queryClient.cancelQueries({ queryKey: ["subscriptions"] });
+      const previousSubscriptions =
+        queryClient.getQueryData<Subscription[]>(["subscriptions"]) || [];
+
+      queryClient.setQueryData<Subscription[]>(
+        ["subscriptions"],
+        (old = []) => old.filter((sub) => sub.id !== id)
+      );
+
+      return { previousSubscriptions };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
       toast({
         title: "Success",
         description: "Subscription removed.",
       });
     },
-    onError: (error: Error) => {
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousSubscriptions) {
+        queryClient.setQueryData(["subscriptions"], context.previousSubscriptions);
+      }
       toast({
         title: "Error",
         description: error.message,

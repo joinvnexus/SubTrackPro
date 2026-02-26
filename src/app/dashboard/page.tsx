@@ -5,7 +5,8 @@ import { useSubscriptions } from "@/hooks/use-subscriptions";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency, calculateMRR, calculateARR, getDaysUntilRenewal } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Calendar, TrendingUp, Activity, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DollarSign, Calendar, TrendingUp, Activity } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { isAfter, isBefore, addDays } from "date-fns";
 
@@ -60,8 +61,55 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <Skeleton className="h-9 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={`kpi-skeleton-${i}`} className="border-border/50">
+              <CardHeader className="space-y-2 pb-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+          <Card className="col-span-4 border-border/50">
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[350px] w-full" />
+            </CardContent>
+          </Card>
+          <Card className="col-span-3 border-border/50">
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={`recent-skeleton-${i}`} className="flex items-center">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="ml-4 space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="ml-auto h-4 w-16" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
