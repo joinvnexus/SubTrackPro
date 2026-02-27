@@ -70,9 +70,9 @@ export async function POST(request: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        const userId = session.metadata?.userId || session.client_reference_id;
+        const user_id = session.metadata?.user_id || session.client_reference_id;
 
-        if (userId) {
+        if (user_id) {
           const subscriptionId =
             typeof session.subscription === "string"
               ? session.subscription
@@ -92,16 +92,16 @@ export async function POST(request: Request) {
           }
 
           await supabase.from("user_plans").upsert({
-            userId,
+            user_id,
             plan: "pro",
-            stripeCustomerId: session.customer as string,
-            stripeSubscriptionId: subscriptionId,
-            stripePriceId,
-            stripeCurrentPeriodEnd,
-            isActive: activeStatus,
+            stripe_customer_id: session.customer as string,
+            stripe_subscription_id: subscriptionId,
+            stripe_price_id: stripePriceId,
+            stripe_current_period_end: stripeCurrentPeriodEnd,
+            is_active: activeStatus,
           });
         } else {
-          console.warn("checkout.session.completed received without userId metadata");
+          console.warn("checkout.session.completed received without user_id metadata");
         }
         break;
       }
@@ -111,18 +111,18 @@ export async function POST(request: Request) {
 
         const { data: userPlan } = await supabase
           .from("user_plans")
-          .select("userId")
-          .eq("stripeCustomerId", subscription.customer)
+          .select("user_id")
+          .eq("stripe_customer_id", subscription.customer)
           .single();
 
         if (userPlan) {
           await supabase.from("user_plans").update({
-            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
-            stripePriceId: subscription.items.data[0]?.price.id,
-            stripeSubscriptionId: subscription.id,
-            isActive: isPlanActive(subscription.status),
+            stripe_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            stripe_price_id: subscription.items.data[0]?.price.id,
+            stripe_subscription_id: subscription.id,
+            is_active: isPlanActive(subscription.status),
             plan: isPlanActive(subscription.status) ? "pro" : "free",
-          }).eq("userId", userPlan.userId);
+          }).eq("user_id", userPlan.user_id);
         }
         break;
       }
@@ -132,8 +132,8 @@ export async function POST(request: Request) {
 
         const { data: userPlan } = await supabase
           .from("user_plans")
-          .select("userId")
-          .eq("stripeCustomerId", subscription.customer)
+          .select("user_id")
+          .eq("stripe_customer_id", subscription.customer)
           .maybeSingle();
 
         if (userPlan) {
@@ -141,14 +141,14 @@ export async function POST(request: Request) {
             .from("user_plans")
             .update({
               plan: "pro",
-              stripeSubscriptionId: subscription.id,
-              stripePriceId: subscription.items.data[0]?.price.id,
-              stripeCurrentPeriodEnd: new Date(
+              stripe_subscription_id: subscription.id,
+              stripe_price_id: subscription.items.data[0]?.price.id,
+              stripe_current_period_end: new Date(
                 subscription.current_period_end * 1000
               ).toISOString(),
-              isActive: isPlanActive(subscription.status),
+              is_active: isPlanActive(subscription.status),
             })
-            .eq("userId", userPlan.userId);
+            .eq("user_id", userPlan.user_id);
         }
         break;
       }
@@ -158,17 +158,17 @@ export async function POST(request: Request) {
 
         const { data: userPlan } = await supabase
           .from("user_plans")
-          .select("userId")
-          .eq("stripeCustomerId", subscription.customer)
+          .select("user_id")
+          .eq("stripe_customer_id", subscription.customer)
           .single();
 
         if (userPlan) {
           await supabase.from("user_plans").update({
-            isActive: false,
+            is_active: false,
             plan: "free",
-            stripeSubscriptionId: null,
-            stripePriceId: null,
-          }).eq("userId", userPlan.userId);
+            stripe_subscription_id: null,
+            stripe_price_id: null,
+          }).eq("user_id", userPlan.user_id);
         }
         break;
       }

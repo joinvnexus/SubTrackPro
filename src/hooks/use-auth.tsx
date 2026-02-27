@@ -56,15 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!user?.id) return null;
       const { data } = await supabase
         .from("user_plans")
-        .select("plan, isActive")
-        .eq("userId", user.id)
+        .select("plan, is_active")
+        .eq("user_id", user.id)
         .single();
       return data;
     },
     enabled: !!user?.id,
   });
 
-  const isPro = userPlan?.plan === "pro" && userPlan?.isActive;
+  const isPro = userPlan?.plan === "pro" && userPlan?.is_active;
 
   const signInMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {

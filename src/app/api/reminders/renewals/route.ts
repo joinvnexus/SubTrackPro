@@ -14,9 +14,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 type RenewalSubscription = {
   name: string;
   category: string;
-  billingCycle: string;
+  billing_cycle: string;
   price: number;
-  renewalDate: string;
+  renewal_date: string;
 };
 
 function toReminderWindow(input: unknown): number {
@@ -34,11 +34,11 @@ function getUpcomingRenewals(subscriptions: RenewalSubscription[], days: number)
 
   return subscriptions
     .filter((sub) => {
-      const renewalTs = new Date(sub.renewalDate).getTime();
+      const renewalTs = new Date(sub.renewal_date).getTime();
       return Number.isFinite(renewalTs) && renewalTs >= now && renewalTs <= end;
     })
     .sort(
-      (a, b) => new Date(a.renewalDate).getTime() - new Date(b.renewalDate).getTime()
+      (a, b) => new Date(a.renewal_date).getTime() - new Date(b.renewal_date).getTime()
     );
 }
 
@@ -46,14 +46,14 @@ function buildReminderEmail(subscriptions: RenewalSubscription[], days: number, 
   const subject = `Upcoming renewals: ${subscriptions.length} in the next ${days} day${days > 1 ? "s" : ""}`;
   const listItems = subscriptions
     .map((sub) => {
-      const renewalDate = format(new Date(sub.renewalDate), "MMM dd, yyyy");
-      return `<li><strong>${sub.name}</strong> (${sub.category}) - ${formatCurrency(sub.price)}/${sub.billingCycle === "monthly" ? "mo" : "yr"} on ${renewalDate}</li>`;
+      const renewalDate = format(new Date(sub.renewal_date), "MMM dd, yyyy");
+      return `<li><strong>${sub.name}</strong> (${sub.category}) - ${formatCurrency(sub.price)}/${sub.billing_cycle === "monthly" ? "mo" : "yr"} on ${renewalDate}</li>`;
     })
     .join("");
 
   const textLines = subscriptions.map((sub) => {
-    const renewalDate = format(new Date(sub.renewalDate), "MMM dd, yyyy");
-    return `- ${sub.name} (${sub.category}) - ${formatCurrency(sub.price)}/${sub.billingCycle === "monthly" ? "mo" : "yr"} on ${renewalDate}`;
+    const renewalDate = format(new Date(sub.renewal_date), "MMM dd, yyyy");
+    return `- ${sub.name} (${sub.category}) - ${formatCurrency(sub.price)}/${sub.billing_cycle === "monthly" ? "mo" : "yr"} on ${renewalDate}`;
   });
 
   const html = `
@@ -151,9 +151,9 @@ export async function POST(request: Request) {
 
     const { data: subscriptions, error } = await supabase
       .from("subscriptions")
-      .select("name, category, billingCycle, price, renewalDate")
-      .eq("userId", user.id)
-      .eq("isActive", true);
+      .select("name, category, billing_cycle, price, renewal_date")
+      .eq("user_id", user.id)
+      .eq("is_active", true);
 
     if (error) {
       return apiError(error.message, 500);

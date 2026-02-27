@@ -49,33 +49,33 @@ export async function POST(request: Request) {
 
     const { data: userPlan, error: planError } = await supabase
       .from("user_plans")
-      .select("plan, isActive, stripeCustomerId")
-      .eq("userId", user.id)
+      .select("plan, is_active, stripe_customer_id")
+      .eq("user_id", user.id)
       .maybeSingle();
 
     if (planError) {
       return apiError(planError.message, 500);
     }
 
-    if (userPlan?.plan === "pro" && userPlan?.isActive) {
+    if (userPlan?.plan === "pro" && userPlan?.is_active) {
       return apiError("Already on Pro plan", 400);
     }
 
-    let stripeCustomerId = userPlan?.stripeCustomerId ?? null;
+    let stripe_customer_id = userPlan?.stripe_customer_id ?? null;
 
-    if (!stripeCustomerId) {
+    if (!stripe_customer_id) {
       const customer = await stripe.customers.create({
         email: user.email ?? undefined,
-        metadata: { userId: user.id },
+        metadata: { user_id: user.id },
       });
 
-      stripeCustomerId = customer.id;
+      stripe_customer_id = customer.id;
 
       const { error: upsertError } = await supabase.from("user_plans").upsert({
-        userId: user.id,
+        user_id: user.id,
         plan: userPlan?.plan ?? "free",
-        isActive: userPlan?.isActive ?? true,
-        stripeCustomerId,
+        is_active: userPlan?.is_active ?? true,
+        stripe_customer_id,
       });
 
       if (upsertError) {
@@ -90,12 +90,12 @@ export async function POST(request: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      customer: stripeCustomerId,
+      customer: stripe_customer_id,
       client_reference_id: user.id,
       line_items: [{ price: stripePriceId, quantity: 1 }],
       success_url: `${appUrl}/dashboard/settings?checkout=success`,
       cancel_url: `${appUrl}/dashboard/settings?checkout=cancelled`,
-      metadata: { userId: user.id },
+      metadata: { user_id: user.id },
       allow_promotion_codes: true,
     });
 

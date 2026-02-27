@@ -29,7 +29,7 @@ export default function DashboardPage() {
     const thirtyDaysFromNow = addDays(now, 30);
 
     subscriptions.forEach(sub => {
-      const renewal = new Date(sub.renewalDate);
+      const renewal = new Date(sub.renewal_date);
       if (isAfter(renewal, now) && isBefore(renewal, thirtyDaysFromNow)) {
         upcomingCount++;
       }
@@ -48,7 +48,7 @@ export default function DashboardPage() {
     
     const categories: Record<string, number> = {};
     subscriptions.forEach(sub => {
-      const monthlyPrice = sub.billingCycle === 'monthly' ? sub.price : sub.price / 12;
+      const monthlyPrice = sub.billing_cycle === 'monthly' ? sub.price : sub.price / 12;
       categories[sub.category] = (categories[sub.category] || 0) + (monthlyPrice / 100);
     });
 
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                     <div className="ml-auto font-medium text-sm">
                       {formatCurrency(sub.price)}
                       <span className="text-xs text-muted-foreground font-normal ml-1">
-                        /{sub.billingCycle === 'monthly' ? 'mo' : 'yr'}
+                        /{sub.billing_cycle === 'monthly' ? 'mo' : 'yr'}
                       </span>
                     </div>
                   </div>

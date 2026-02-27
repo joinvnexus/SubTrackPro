@@ -95,8 +95,8 @@ export function useCancelPlan() {
 
       const { error } = await supabase
         .from("user_plans")
-        .update({ isActive: false })
-        .eq("userId", user.id);
+        .update({ is_active: false })
+        .eq("user_id", user.id);
 
       if (error) throw error;
     },

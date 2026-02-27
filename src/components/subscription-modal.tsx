@@ -31,9 +31,9 @@ const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   priceStr: z.string().min(1, "Price is required").regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
-  billingCycle: z.enum(["monthly", "yearly"]),
+  billing_cycle: z.enum(["monthly", "yearly"]),
   category: z.string().min(1, "Category is required"),
-  renewalDate: z.date({ required_error: "Renewal date is required" }),
+  renewal_date: z.date({ required_error: "Renewal date is required" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -55,7 +55,7 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
       name: "",
       description: "",
       priceStr: "",
-      billingCycle: "monthly",
+      billing_cycle: "monthly",
       category: "Software",
     },
   });
@@ -66,16 +66,16 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
         name: subscription.name,
         description: subscription.description || "",
         priceStr: (subscription.price / 100).toString(),
-        billingCycle: subscription.billingCycle as "monthly" | "yearly",
+        billing_cycle: subscription.billing_cycle as "monthly" | "yearly",
         category: subscription.category,
-        renewalDate: new Date(subscription.renewalDate),
+        renewal_date: new Date(subscription.renewal_date),
       });
     } else if (!open) {
       form.reset({
         name: "",
         description: "",
         priceStr: "",
-        billingCycle: "monthly",
+        billing_cycle: "monthly",
         category: "Software",
       });
     }
@@ -90,18 +90,18 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
         name: data.name,
         description: data.description,
         price: priceInCents,
-        billingCycle: data.billingCycle,
+        billing_cycle: data.billing_cycle,
         category: data.category,
-        renewalDate: data.renewalDate,
+        renewal_date: data.renewal_date,
       });
     } else {
       await createSub.mutateAsync({
         name: data.name,
         description: data.description,
         price: priceInCents,
-        billingCycle: data.billingCycle,
+        billing_cycle: data.billing_cycle,
         category: data.category,
-        renewalDate: data.renewalDate,
+        renewal_date: data.renewal_date,
       });
     }
     onOpenChange(false);
@@ -161,8 +161,8 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
             <div className="space-y-2">
               <Label>Billing Cycle</Label>
               <Select
-                onValueChange={(val) => form.setValue("billingCycle", val as "monthly" | "yearly")}
-                defaultValue={form.getValues("billingCycle")}
+                onValueChange={(val) => form.setValue("billing_cycle", val as "monthly" | "yearly")}
+                defaultValue={form.getValues("billing_cycle")}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select cycle" />
@@ -198,24 +198,24 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={`w-full justify-start text-left font-normal ${!form.watch("renewalDate") && "text-muted-foreground"}`}
+                  className={`w-full justify-start text-left font-normal ${!form.watch("renewal_date") && "text-muted-foreground"}`}
                   type="button"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.watch("renewalDate") ? format(form.watch("renewalDate"), "PPP") : <span>Pick a date</span>}
+                  {form.watch("renewal_date") ? format(form.watch("renewal_date"), "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={form.watch("renewalDate")}
-                  onSelect={(date) => date && form.setValue("renewalDate", date)}
+                  selected={form.watch("renewal_date")}
+                  onSelect={(date) => date && form.setValue("renewal_date", date)}
                   initialFocus
                 />
               </PopoverContent>
             </Popover>
-            {form.formState.errors.renewalDate && (
-              <p className="text-xs text-destructive">{form.formState.errors.renewalDate.message}</p>
+            {form.formState.errors.renewal_date && (
+              <p className="text-xs text-destructive">{form.formState.errors.renewal_date.message}</p>
             )}
           </div>
 

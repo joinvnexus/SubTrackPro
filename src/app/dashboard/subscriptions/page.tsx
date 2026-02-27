@@ -142,10 +142,10 @@ export default function SubscriptionsPage() {
         escapeCsvValue(sub.name),
         escapeCsvValue(sub.description ?? ""),
         escapeCsvValue(sub.category),
-        escapeCsvValue(sub.billingCycle),
+        escapeCsvValue(sub.billing_cycle),
         escapeCsvValue((sub.price / 100).toFixed(2)),
-        escapeCsvValue(format(new Date(sub.renewalDate), "yyyy-MM-dd")),
-        escapeCsvValue(format(new Date(sub.createdAt), "yyyy-MM-dd")),
+        escapeCsvValue(format(new Date(sub.renewal_date), "yyyy-MM-dd")),
+        escapeCsvValue(format(new Date(sub.created_at), "yyyy-MM-dd")),
       ].join(",")
     );
 
@@ -249,12 +249,12 @@ export default function SubscriptionsPage() {
                         <TableCell className="text-sm">
                           {formatCurrency(sub.price)}
                           <span className="text-xs text-muted-foreground ml-1">
-                            /{sub.billingCycle === 'monthly' ? 'mo' : 'yr'}
+                            /{sub.billing_cycle === 'monthly' ? 'mo' : 'yr'}
                           </span>
                         </TableCell>
-                        <TableCell className="text-sm capitalize">{sub.billingCycle}</TableCell>
+                        <TableCell className="text-sm capitalize">{sub.billing_cycle}</TableCell>
                         <TableCell className="text-sm">
-                          {format(new Date(sub.renewalDate), 'MMM dd, yyyy')}
+                          {format(new Date(sub.renewal_date), 'MMM dd, yyyy')}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

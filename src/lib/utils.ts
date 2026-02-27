@@ -28,11 +28,11 @@ export function formatDate(date: Date | string): string {
   }).format(d);
 }
 
-export function calculateMRR(subscriptions: { price: number; billingCycle: string }[]): number {
+export function calculateMRR(subscriptions: { price: number; billing_cycle: string }[]): number {
   return subscriptions.reduce((total, sub) => {
-    if (sub.billingCycle === "monthly") {
+    if (sub.billing_cycle === "monthly") {
       return total + sub.price;
-    } else if (sub.billingCycle === "yearly") {
+    } else if (sub.billing_cycle === "yearly") {
       return total + Math.round(sub.price / 12);
     }
     return total;

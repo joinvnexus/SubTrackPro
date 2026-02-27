@@ -19,8 +19,8 @@ export function useSubscriptions() {
       const { data, error } = await supabase
         .from("subscriptions")
         .select("*")
-        .eq("isActive", true)
-        .order("createdAt", { ascending: false });
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Subscription[];
@@ -61,8 +61,8 @@ export function useCreateSubscription() {
       const { data: existingSubs } = await supabase
         .from("subscriptions")
         .select("id", { count: "exact" })
-        .eq("userId", user.id)
-        .eq("isActive", true);
+        .eq("user_id", user.id)
+        .eq("is_active", true);
 
       const subCount = existingSubs?.length ?? 0;
 
@@ -71,13 +71,13 @@ export function useCreateSubscription() {
       }
 
       const { error } = await supabase.from("subscriptions").insert({
-        userId: user.id,
+        user_id: user.id,
         name: data.name,
         description: data.description,
         price: Math.round(data.price),
-        billingCycle: data.billingCycle,
+        billing_cycle: data.billing_cycle,
         category: data.category,
-        renewalDate: data.renewalDate.toISOString(),
+        renewal_date: data.renewal_date.toISOString(),
       });
 
       if (error) throw error;
@@ -94,16 +94,16 @@ export function useCreateSubscription() {
       const now = new Date();
       const optimisticSubscription = {
         id: `temp-${Date.now()}`,
-        userId: user.id,
+        user_id: user.id,
         name: data.name,
         description: data.description ?? null,
         price: Math.round(data.price),
-        billingCycle: data.billingCycle,
+        billing_cycle: data.billing_cycle,
         category: data.category,
-        renewalDate: data.renewalDate,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
+        renewal_date: data.renewal_date,
+        is_active: true,
+        created_at: now,
+        updated_at: now,
       } as unknown as Subscription;
 
       queryClient.setQueryData<Subscription[]>(["subscriptions"], (old = []) => [
@@ -154,10 +154,10 @@ export function useUpdateSubscription() {
         name: data.name,
         description: data.description,
         price: Math.round(data.price || 0),
-        billingCycle: data.billingCycle,
+        billing_cycle: data.billing_cycle,
         category: data.category,
-        renewalDate: data.renewalDate?.toISOString(),
-        updatedAt: new Date().toISOString(),
+        renewal_date: data.renewal_date?.toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       // Remove undefined values
@@ -185,10 +185,10 @@ export function useUpdateSubscription() {
                 name: data.name,
                 description: data.description ?? null,
                 price: Math.round(data.price || 0),
-                billingCycle: data.billingCycle,
+                billing_cycle: data.billing_cycle,
                 category: data.category,
-                renewalDate: data.renewalDate || sub.renewalDate,
-                updatedAt: new Date(),
+                renewal_date: data.renewal_date || sub.renewal_date,
+                updated_at: new Date(),
               } as Subscription)
             : sub
         )
@@ -228,7 +228,7 @@ export function useDeleteSubscription() {
       // Soft delete - just mark as inactive
       const { error } = await supabase
         .from("subscriptions")
-        .update({ isActive: false, updatedAt: new Date().toISOString() })
+        .update({ is_active: false, updated_at: new Date().toISOString() })
         .eq("id", id);
 
       if (error) throw error;

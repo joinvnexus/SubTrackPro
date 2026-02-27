@@ -45,15 +45,15 @@ export async function POST(request: Request) {
 
     const { data: userPlan, error: planError } = await supabase
       .from("user_plans")
-      .select("stripeCustomerId, plan, isActive")
-      .eq("userId", user.id)
+      .select("stripe_customer_id, plan, is_active")
+      .eq("user_id", user.id)
       .maybeSingle();
 
     if (planError) {
       return apiError(planError.message, 500);
     }
 
-    if (!userPlan?.stripeCustomerId) {
+    if (!userPlan?.stripe_customer_id) {
       return apiError("No Stripe customer found for this account", 400);
     }
 
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       "http://localhost:3000";
 
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: userPlan.stripeCustomerId,
+      customer: userPlan.stripe_customer_id,
       return_url: `${appUrl}/dashboard/settings`,
     });
 
