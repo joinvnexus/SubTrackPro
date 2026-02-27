@@ -5,6 +5,7 @@ node_modules
 dist
 build
 .next
+tsconfig.tsbuildinfo
 
 # OS files
 .DS_Store
@@ -55,8 +56,4 @@ temp
 server/public
 
 # Next.js
-next-env.d.ts
-next.config.js
-
-# TODO
-TODO.md
+.vercel
