@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { 
+  Bell,
   BarChart3, 
   CreditCard, 
+  LineChart,
   Settings, 
   LogOut,
   Loader2
@@ -16,6 +18,8 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Subscriptions", href: "/dashboard/subscriptions", icon: CreditCard },
+  { name: "Analytics", href: "/dashboard/analytics", icon: LineChart },
+  { name: "Reminders", href: "/dashboard/reminders", icon: Bell },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
