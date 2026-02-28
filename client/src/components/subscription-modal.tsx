@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -47,6 +47,7 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
   const updateSub = useUpdateSubscription();
 
   const isEditing = !!subscription;
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,6 +70,7 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
         renewalDate: new Date(subscription.renewalDate),
       });
     } else if (!open) {
+      setIsCalendarOpen(false);
       form.reset({
         name: "",
         priceStr: "",
@@ -219,7 +221,7 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
               <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
               Next Renewal Date
             </Label>
-            <Popover>
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -231,16 +233,19 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
                   {selectedRenewalDate ? format(selectedRenewalDate, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto border-border/60 bg-popover/95 p-0 shadow-xl backdrop-blur-md" align="start">
+              <PopoverContent className="z-[80] w-auto border-border/60 bg-popover/95 p-0 shadow-xl backdrop-blur-md" align="start">
                 <Calendar
                   mode="single"
                   selected={selectedRenewalDate}
                   onSelect={(date) =>
                     date &&
-                    form.setValue("renewalDate", date, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
+                    (() => {
+                      form.setValue("renewalDate", date, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                      setIsCalendarOpen(false);
+                    })()
                   }
                   initialFocus
                 />
