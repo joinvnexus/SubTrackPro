@@ -1,11 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import {
+  CalendarDays,
+  CalendarIcon,
+  FileText,
+  Loader2,
+  Repeat,
+  Sparkles,
+  Tag,
+  Wallet,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +66,7 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
       priceStr: "",
       billing_cycle: "monthly",
       category: "Software",
+      renewal_date: undefined,
     },
   });
 
@@ -77,6 +87,7 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
         priceStr: "",
         billing_cycle: "monthly",
         category: "Software",
+        renewal_date: undefined,
       });
     }
   }, [subscription, open, form]);
@@ -108,25 +119,42 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
   };
 
   const isPending = createSub.isPending || updateSub.isPending;
+  const selectedRenewalDate = form.watch("renewal_date");
+  const selectedBillingCycle = form.watch("billing_cycle");
+  const selectedCategory = form.watch("category");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Subscription" : "Add Subscription"}</DialogTitle>
-          <DialogDescription>
-            {isEditing ? "Update your subscription details." : "Add a new subscription to track."}
-          </DialogDescription>
+      <DialogContent className="overflow-hidden border-border/60 bg-background/95 p-0 shadow-[0_32px_80px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:max-w-[640px]">
+        <DialogHeader className="relative overflow-hidden border-b border-border/60 bg-gradient-to-r from-primary/15 via-background to-emerald-400/10 px-6 pb-5 pt-6 sm:px-7">
+          <div className="absolute inset-0 subtle-grid-bg opacity-20" />
+          <div className="relative space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/35 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              <Sparkles className="h-3.5 w-3.5" />
+              Subscription Details
+            </div>
+            <DialogTitle className="font-display text-2xl">
+              {isEditing ? "Edit Subscription" : "Add Subscription"}
+            </DialogTitle>
+            <DialogDescription className="max-w-xl text-sm leading-relaxed">
+              {isEditing
+                ? "Refine pricing, billing cadence, and renewal date so your dashboard stays accurate."
+                : "Capture your new recurring expense with category, billing cycle, and renewal tracking in one flow."}
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 px-6 py-6 sm:px-7 sm:py-7">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name" className="text-sm font-medium">
+              Service Name
+            </Label>
             <Input
               id="name"
-              placeholder="e.g., Netflix, Spotify"
+              placeholder="e.g. Netflix, GitHub, Figma"
               {...form.register("name")}
               disabled={isPending}
+              className="border-input/80 bg-background/60"
             />
             {form.formState.errors.name && (
               <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
@@ -134,40 +162,62 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
+            <Label htmlFor="description" className="inline-flex items-center gap-2 text-sm font-medium">
+              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+              Description (Optional)
+            </Label>
             <Input
               id="description"
-              placeholder="Brief description"
+              placeholder="Team seat, personal plan, yearly workspace, etc."
               {...form.register("description")}
               disabled={isPending}
+              className="border-input/80 bg-background/60"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="priceStr">Price</Label>
-              <Input
-                id="priceStr"
-                type="text"
-                placeholder="9.99"
-                {...form.register("priceStr")}
-                disabled={isPending}
-              />
+              <Label htmlFor="priceStr" className="inline-flex items-center gap-2 text-sm font-medium">
+                <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                Price (USD)
+              </Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
+                  $
+                </span>
+                <Input
+                  id="priceStr"
+                  type="text"
+                  placeholder="12.99"
+                  {...form.register("priceStr")}
+                  disabled={isPending}
+                  className="border-input/80 bg-background/60 pl-7"
+                />
+              </div>
               {form.formState.errors.priceStr && (
                 <p className="text-xs text-destructive">{form.formState.errors.priceStr.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label>Billing Cycle</Label>
+              <Label className="inline-flex items-center gap-2 text-sm font-medium">
+                <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+                Billing Cycle
+              </Label>
               <Select
-                onValueChange={(val) => form.setValue("billing_cycle", val as "monthly" | "yearly")}
-                defaultValue={form.getValues("billing_cycle")}
+                value={selectedBillingCycle}
+                onValueChange={(val) =>
+                  form.setValue("billing_cycle", val as "monthly" | "yearly", {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                disabled={isPending}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-input/80 bg-background/60">
                   <SelectValue placeholder="Select cycle" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="border-border/60 bg-popover/95 backdrop-blur-md">
                   <SelectItem value="monthly">Monthly</SelectItem>
                   <SelectItem value="yearly">Yearly</SelectItem>
                 </SelectContent>
@@ -176,40 +226,63 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label className="inline-flex items-center gap-2 text-sm font-medium">
+              <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+              Category
+            </Label>
             <Select
-              onValueChange={(val) => form.setValue("category", val)}
-              defaultValue={form.getValues("category")}
+              value={selectedCategory}
+              onValueChange={(val) =>
+                form.setValue("category", val, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
+              disabled={isPending}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border-input/80 bg-background/60">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-border/60 bg-popover/95 backdrop-blur-md">
                 {CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Next Renewal Date</Label>
+            <Label className="inline-flex items-center gap-2 text-sm font-medium">
+              <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+              Next Renewal Date
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={`w-full justify-start text-left font-normal ${!form.watch("renewal_date") && "text-muted-foreground"}`}
+                  className={`w-full justify-start border-input/80 bg-background/60 text-left font-normal ${
+                    !selectedRenewalDate ? "text-muted-foreground" : ""
+                  }`}
                   type="button"
+                  disabled={isPending}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.watch("renewal_date") ? format(form.watch("renewal_date"), "PPP") : <span>Pick a date</span>}
+                  {selectedRenewalDate ? format(selectedRenewalDate, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto border-border/60 bg-popover/95 p-0 shadow-xl backdrop-blur-md" align="start">
                 <Calendar
                   mode="single"
-                  selected={form.watch("renewal_date")}
-                  onSelect={(date) => date && form.setValue("renewal_date", date)}
+                  selected={selectedRenewalDate}
+                  onSelect={(date) =>
+                    date &&
+                    form.setValue("renewal_date", date, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
                   initialFocus
                 />
               </PopoverContent>
@@ -219,11 +292,17 @@ export function SubscriptionModal({ open, onOpenChange, subscription }: Props) {
             )}
           </div>
 
-          <div className="flex justify-end pt-4 gap-3">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
+          <div className="flex flex-col-reverse gap-3 border-t border-border/60 pt-5 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              disabled={isPending}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? "Save Changes" : "Add Subscription"}
             </Button>

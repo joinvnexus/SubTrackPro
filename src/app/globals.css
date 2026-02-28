@@ -9,86 +9,82 @@
     --font-sans: 'DM Sans', sans-serif;
     --font-display: 'Outfit', sans-serif;
 
-    /* Base Premium Dark Theme (Default) */
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    
-    /* Vibrant Electric Purple/Indigo for primary actions */
-    --primary: 262.1 83.3 57.8%;
-    --primary-foreground: 210 40% 98%;
-    
-    --secondary: 240 4.8% 25.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    
-    /* Semantic Colors */
-    --destructive: 0 62.8% 30.6%;
+    --background: 223 45% 8%;
+    --foreground: 214 31% 94%;
+    --card: 223 40% 11%;
+    --card-foreground: 214 31% 94%;
+    --popover: 223 41% 12%;
+    --popover-foreground: 214 31% 94%;
+
+    --primary: 190 95% 48%;
+    --primary-foreground: 220 47% 10%;
+
+    --secondary: 221 27% 19%;
+    --secondary-foreground: 214 31% 95%;
+    --muted: 221 26% 16%;
+    --muted-foreground: 216 18% 68%;
+    --accent: 214 35% 21%;
+    --accent-foreground: 214 31% 95%;
+
+    --destructive: 0 78% 55%;
     --destructive-foreground: 0 0% 98%;
-    --success: 142.1 76.2% 36.3%;
+    --success: 142 71% 45%;
     --success-foreground: 210 40% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 48 96% 89%;
+    --warning: 39 96% 56%;
+    --warning-foreground: 28 100% 12%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 262.1 83.3 57.8%;
-    
-    --radius: 0.75rem;
+    --border: 219 22% 22%;
+    --input: 219 22% 22%;
+    --ring: 190 95% 48%;
 
-    /* Sidebar Variables */
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 262.1 83.3 57.8%;
+    --radius: 0.9rem;
+
+    --sidebar-background: 224 42% 9%;
+    --sidebar-foreground: 214 31% 94%;
+    --sidebar-primary: 190 95% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 262.1 83.3 57.8%;
-    
-    /* Chart Colors - Vibrant Palette */
-    --chart-1: 262.1 83.3 57.8%;
-    --chart-2: 199 89% 48%;
-    --chart-3: 316 73% 52%;
-    --chart-4: 43 96% 56%;
-    --chart-5: 142.1 76.2% 36.3%;
+    --sidebar-accent: 221 32% 17%;
+    --sidebar-accent-foreground: 214 31% 95%;
+    --sidebar-border: 219 22% 22%;
+    --sidebar-ring: 190 95% 48%;
+
+    --chart-1: 190 95% 48%;
+    --chart-2: 162 83% 45%;
+    --chart-3: 215 91% 58%;
+    --chart-4: 42 96% 56%;
+    --chart-5: 334 82% 58%;
   }
 
-  /* Light mode option (if toggled) */
   .light {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222 47% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222 47% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 262.1 83.3 57.8%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 222 47% 13%;
+    --primary: 197 93% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 22% 96%;
+    --secondary-foreground: 222 47% 13%;
+    --muted: 220 20% 95%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 214 30% 93%;
+    --accent-foreground: 222 47% 13%;
+    --destructive: 0 84% 58%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 262.1 83.3 57.8%;
-    --sidebar-background: 240 5.9% 98%;
-    --sidebar-foreground: 240 5.9% 10%;
-    --sidebar-primary: 262.1 83.3 57.8%;
+    --success: 142 71% 38%;
+    --warning: 39 96% 49%;
+    --border: 220 15% 87%;
+    --input: 220 15% 87%;
+    --ring: 197 93% 42%;
+    --sidebar-background: 220 17% 98%;
+    --sidebar-foreground: 222 47% 13%;
+    --sidebar-primary: 197 93% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent: 214 30% 93%;
+    --sidebar-accent-foreground: 222 47% 13%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 262.1 83.3 57.8%;
+    --sidebar-ring: 197 93% 42%;
   }
 }
 
@@ -96,41 +92,100 @@
   * {
     @apply border-border;
   }
+
+  html,
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground;
-    font-family: var(--font-sans);
+    min-height: 100%;
   }
+
+  body {
+    @apply text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground;
+    font-family: var(--font-sans);
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(circle at 0% 0%, hsl(var(--primary) / 0.12), transparent 40%),
+      radial-gradient(circle at 100% 0%, hsl(162 83% 45% / 0.16), transparent 35%),
+      linear-gradient(180deg, hsl(223 44% 9%) 0%, hsl(224 48% 7%) 100%);
+    background-attachment: fixed;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     @apply tracking-tight;
   }
 }
 
-/* Glassmorphism utilities */
+.subtle-grid-bg {
+  background-image:
+    linear-gradient(hsl(var(--border) / 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.35) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+.premium-surface {
+  @apply rounded-xl border border-border/60 bg-card/65 backdrop-blur-xl shadow-[0_18px_45px_-28px_rgba(0,0,0,0.75)];
+}
+
 .glass {
-  @apply bg-background/60 backdrop-blur-xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)];
+  @apply rounded-xl border border-border/60 bg-background/65 backdrop-blur-xl shadow-[0_18px_45px_-28px_rgba(0,0,0,0.75)];
 }
 
 .glass-card {
-  @apply bg-card/50 backdrop-blur-lg border border-border/50 shadow-lg hover:shadow-xl hover:bg-card/80 hover:border-border transition-all duration-300;
+  @apply rounded-xl border border-border/60 bg-card/65 backdrop-blur-lg shadow-[0_14px_35px_-26px_rgba(0,0,0,0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-card/80 hover:shadow-[0_24px_50px_-26px_rgba(0,0,0,0.95)];
 }
 
-/* Fancy Gradient Text */
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-primary;
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(90deg, hsl(var(--primary)), hsl(162 83% 45%), hsl(215 91% 58%));
 }
 
-/* Smooth entry animation */
 @keyframes slideUpFade {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-slide-up {
   animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Shimmer loading effect */
+@keyframes floatSlow {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 12px hsl(var(--primary) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.6s ease-out infinite;
+}
+
 .shimmer {
   @apply relative overflow-hidden;
 }
@@ -146,20 +201,19 @@
   content: '';
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-background;
+  @apply bg-background/80;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-full;
+  @apply rounded-full bg-muted-foreground/35;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/50;
+  @apply bg-muted-foreground/55;
 }
