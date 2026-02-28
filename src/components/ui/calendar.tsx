@@ -14,6 +14,8 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
+  // const currentYear = new Date().getFullYear();
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -21,9 +23,9 @@ function Calendar({
       classNames={{
         months: "relative flex flex-col gap-4 sm:flex-row sm:gap-5",
         month: "space-y-3",
-        month_caption: "relative flex h-8 items-center justify-center",
-        caption_label: "text-sm font-semibold tracking-tight",
-        nav: "absolute inset-x-0 top-0 flex items-center justify-between px-1",
+        month_caption: "flex h-9 items-center justify-center gap-2",
+        nav: "absolute inset-x-0 top-0 flex items-center justify-between px-1",   
+        
         button_previous: cn(
           buttonVariants({ variant: "outline", size: "icon" }),
           "h-7 w-7 rounded-md border-border/50 bg-background/70 p-0 text-muted-foreground shadow-none hover:border-primary/40 hover:text-primary"
